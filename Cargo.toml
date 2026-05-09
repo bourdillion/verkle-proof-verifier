@@ -1,0 +1,38 @@
+[package]
+name = "verkle-proof-verifier"
+version = "0.1.0"
+edition = "2024"
+description = "Standalone Verkle proof verifier for Ethereum"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/bourdillion/verkle-proof-verifier"
+keywords = ["verkle", "ethereum", "cryptography", "verifier"]
+categories = ["cryptography"]
+
+[features]
+default = ["std"]
+std = []
+serde = ["dep:serde"]
+
+[dependencies]
+
+banderwagon = { git = "https://github.com/crate-crypto/rust-verkle", branch = "master" }
+ipa-multipoint = { git = "https://github.com/crate-crypto/rust-verkle", branch = "master" }
+
+
+ark-ff = { version = "0.3", default-features = false }
+ark-ec = { version = "0.3", default-features = false }
+ark-serialize = { version = "0.3", default-features = false }
+ark-std = { version = "0.3", default-features = false }
+
+sha2 = "0.10"
+thiserror = "2"
+serde = { version = "1", features = ["derive"], optional = true }
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+hex = "0.4"
+serde_json = "1"
+
+[[bench]]
+name = "verify"
+harness = false
