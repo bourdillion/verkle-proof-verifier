@@ -119,3 +119,80 @@ fn fold_scalars(eval_point: Fr, challenges: &[Fr], n: usize) -> Result<Fr, Verif
 
     Ok(scalars[0])
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::proof::IpaProof;
+
+    #[test]
+    fn rejects_mismatched_l_r_lengths() {
+        let crs = CRS::new(b"test");
+        let g = Element::prime_subgroup_generator();
+
+        let bad_proof = IpaProof {
+            l: vec![g; 8],
+            r: vec![g; 7],
+            a: Fr::from(1u64),
+        };
+
+        let mut transcript = Transcript::new(b"test");
+        let result = verify_ipa(
+            &mut transcript,
+            &crs,
+            g,
+            &bad_proof,
+            Fr::from(1u64),
+            Fr::from(1u64),
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn rejects_wrong_proof_depth() {
+        let crs = CRS::new(b"test");
+        let g = Element::prime_subgroup_generator();
+
+        // CRS has 256 points so proof needs log2(256) = 8 rounds
+        let wrong_depth = IpaProof {
+            l: vec![g; 4],
+            r: vec![g; 4],
+            a: Fr::from(1u64),
+        };
+
+        let mut transcript = Transcript::new(b"test");
+        let result = verify_ipa(
+            &mut transcript,
+            &crs,
+            g,
+            &wrong_depth,
+            Fr::from(1u64),
+            Fr::from(1u64),
+        );
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn rejects_random_proof() {
+        let crs = CRS::new(b"test");
+        let g = Element::prime_subgroup_generator();
+
+        // Garbage proof with correct structure should fail verification
+        let fake_proof = IpaProof {
+            l: vec![g; 8],
+            r: vec![g; 8],
+            a: Fr::from(42u64),
+        };
+
+        let mut transcript = Transcript::new(b"test");
+        let result = verify_ipa(
+            &mut transcript,
+            &crs,
+            g,
+            &fake_proof,
+            Fr::from(1u64),
+            Fr::from(1u64),
+        );
+        assert!(matches!(result, Ok(false)));
+    }
+}
