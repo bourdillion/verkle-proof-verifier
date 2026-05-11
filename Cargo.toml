@@ -19,10 +19,10 @@ banderwagon = { git = "https://github.com/crate-crypto/rust-verkle", branch = "m
 ipa-multipoint = { git = "https://github.com/crate-crypto/rust-verkle", branch = "master" }
 
 
-ark-ff = { version = "0.3", default-features = false }
-ark-ec = { version = "0.3", default-features = false }
-ark-serialize = { version = "0.3", default-features = false }
-ark-std = { version = "0.3", default-features = false }
+ark-ff = { version = "0.4", default-features = false }
+ark-ec = { version = "0.4", default-features = false }
+ark-serialize = { version = "0.4", default-features = false }
+ark-std = { version = "0.4", default-features = false }
 
 sha2 = "0.10"
 thiserror = "2"
