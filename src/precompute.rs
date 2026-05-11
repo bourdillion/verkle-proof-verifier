@@ -1,8 +1,7 @@
 use banderwagon::{Element, Fr};
 use sha2::{Digest, Sha256};
 
-/// The Common Reference String for Verkle tree commitments.
-/// 256 basis points (one per child in a width-256 node) plus Q for IPA.
+/// Common Reference String for Verkle tree commitments.
 pub struct CRS {
     pub basis: Vec<Element>,
     pub q: Element,
@@ -13,7 +12,6 @@ impl CRS {
     pub const DOMAIN_SIZE: usize = 256;
 
     /// Generate the CRS deterministically from a seed.
-    /// In production, these are standardized constants from the Ethereum ceremony.
     pub fn new(seed: &[u8]) -> Self {
         let mut basis = Vec::with_capacity(Self::DOMAIN_SIZE);
         for i in 0..Self::DOMAIN_SIZE {
@@ -30,8 +28,6 @@ impl CRS {
 }
 
 /// Hash to a curve point deterministically.
-/// Uses try-and-increment: hash the input, interpret as field element,
-/// check if it maps to a valid point, increment counter if not.
 fn hash_to_point(seed: &[u8], index: u64) -> Element {
     let mut counter: u64 = 0;
     loop {
