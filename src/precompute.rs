@@ -47,3 +47,49 @@ fn hash_to_point(seed: &[u8], index: u64) -> Element {
         counter += 1;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn crs_has_correct_size() {
+        let crs = CRS::new(b"test_seed");
+        assert_eq!(crs.basis.len(), CRS::DOMAIN_SIZE);
+    }
+
+    #[test]
+    fn crs_is_deterministic() {
+        let crs1 = CRS::new(b"same_seed");
+        let crs2 = CRS::new(b"same_seed");
+        for (a, b) in crs1.basis.iter().zip(crs2.basis.iter()) {
+            assert_eq!(a, b);
+        }
+        assert_eq!(crs1.q, crs2.q);
+    }
+
+    #[test]
+    fn different_seeds_different_crs() {
+        let crs1 = CRS::new(b"seed_a");
+        let crs2 = CRS::new(b"seed_b");
+        assert_ne!(crs1.basis[0], crs2.basis[0]);
+    }
+
+    #[test]
+    fn basis_points_are_distinct() {
+        let crs = CRS::new(b"test_seed");
+        for i in 0..crs.basis.len() {
+            for j in (i + 1)..crs.basis.len() {
+                assert_ne!(crs.basis[i], crs.basis[j]);
+            }
+        }
+    }
+
+    #[test]
+    fn q_is_distinct_from_basis() {
+        let crs = CRS::new(b"test_seed");
+        for point in &crs.basis {
+            assert_ne!(*point, crs.q);
+        }
+    }
+}

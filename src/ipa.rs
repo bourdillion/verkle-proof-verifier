@@ -6,9 +6,6 @@ use ark_ff::Field;
 use banderwagon::{Element, Fr};
 
 /// Verify an IPA proof that polynomial committed in C evaluates to y at z.
-///
-/// The verifier checks the recursive halving proof without
-/// ever seeing the full polynomial.
 pub fn verify_ipa(
     transcript: &mut Transcript,
     crs: &CRS,
@@ -49,7 +46,7 @@ pub fn verify_ipa(
         challenges_inv.push(x_inv);
     }
 
-    // Fold the commitment: C' = C + sum(x_i^2 * L_i) + sum(x_inv_i^2 * R_i)
+    // Fold the commitment
     let mut c_prime = commitment;
     for i in 0..k {
         let x_sq = challenges[i].square();
