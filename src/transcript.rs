@@ -66,3 +66,62 @@ impl Transcript {
         Fr::from_be_bytes_mod_order(&hash_output)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn deterministic_challenge() {
+        let mut t1 = Transcript::new(b"test");
+        let mut t2 = Transcript::new(b"test");
+
+        t1.append_bytes(b"hello");
+        t2.append_bytes(b"hello");
+
+        let c1 = t1.challenge_scalar(b"challenge");
+        let c2 = t2.challenge_scalar(b"challenge");
+        assert_eq!(c1, c2);
+    }
+
+    #[test]
+    fn different_labels_different_challenges() {
+        let mut t1 = Transcript::new(b"proto_a");
+        let mut t2 = Transcript::new(b"proto_b");
+
+        let c1 = t1.challenge_scalar(b"x");
+        let c2 = t2.challenge_scalar(b"x");
+        assert_ne!(c1, c2);
+    }
+
+    #[test]
+    fn order_matters() {
+        let mut t1 = Transcript::new(b"test");
+        let mut t2 = Transcript::new(b"test");
+
+        t1.append_bytes(b"first");
+        t1.append_bytes(b"second");
+
+        t2.append_bytes(b"second");
+        t2.append_bytes(b"first");
+
+        let c1 = t1.challenge_scalar(b"x");
+        let c2 = t2.challenge_scalar(b"x");
+        assert_ne!(c1, c2);
+    }
+
+    #[test]
+    fn chained_challenges_differ() {
+        let mut t = Transcript::new(b"test");
+        let c1 = t.challenge_scalar(b"first");
+        let c2 = t.challenge_scalar(b"second");
+        assert_ne!(c1, c2);
+    }
+
+    #[test]
+    fn challenge_is_nonzero() {
+        let mut t = Transcript::new(b"test");
+        let c = t.challenge_scalar(b"x");
+        assert_ne!(c, Fr::from(0u64));
+    }
+}
