@@ -1,7 +1,7 @@
 use crate::error::VerificationError;
 use banderwagon::{Element, Fr};
 
-/// Multi-scalar multiplication: sum of (scalar_i * base_i)
+///  sum of (scalar_i * base_i)
 pub fn msm(bases: &[Element], scalars: &[Fr]) -> Result<Element, VerificationError> {
     if bases.len() != scalars.len() {
         return Err(VerificationError::InvalidInput(format!(
