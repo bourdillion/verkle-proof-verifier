@@ -8,5 +8,5 @@ pub mod proof;
 pub mod transcript;
 
 pub use error::VerificationError;
-// pub use multiproof::verify_multiproof;
-// pub use proof::{VerkleProof, VerkleCommitment};
+pub use multiproof::verify_multiproof;
+pub use proof::{VerkleCommitment, VerkleProof};
