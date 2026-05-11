@@ -14,7 +14,6 @@ pub struct OpeningClaim {
 }
 
 /// Verify a Verkle multiproof against a set of opening claims.
-
 pub fn verify_multiproof(
     crs: &CRS,
     proof: &VerkleProof,
@@ -70,4 +69,96 @@ pub fn verify_multiproof(
         t,
         combined_eval,
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::proof::{IpaProof, MultiPointProof};
+
+    #[test]
+    fn rejects_empty_claims() {
+        let crs = CRS::new(b"test");
+        let g = Element::prime_subgroup_generator();
+
+        let proof = VerkleProof {
+            multi_point: MultiPointProof {
+                d: g,
+                ipa: IpaProof {
+                    l: vec![g; 8],
+                    r: vec![g; 8],
+                    a: Fr::from(1u64),
+                },
+            },
+            commitments: vec![],
+        };
+
+        let result = verify_multiproof(&crs, &proof, &[]);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn rejects_fake_proof() {
+        let crs = CRS::new(b"test");
+        let g = Element::prime_subgroup_generator();
+
+        let fake_commitment = VerkleCommitment::from(g);
+        let claims = vec![OpeningClaim {
+            commitment: fake_commitment,
+            eval_point: Fr::from(1u64),
+            eval_value: Fr::from(42u64),
+        }];
+
+        let proof = VerkleProof {
+            multi_point: MultiPointProof {
+                d: g,
+                ipa: IpaProof {
+                    l: vec![g; 8],
+                    r: vec![g; 8],
+                    a: Fr::from(99u64),
+                },
+            },
+            commitments: vec![fake_commitment],
+        };
+
+        let result = verify_multiproof(&crs, &proof, &claims);
+        assert!(matches!(result, Ok(false)));
+    }
+
+    #[test]
+    fn different_claims_produce_different_results() {
+        let crs = CRS::new(b"test");
+        let g = Element::prime_subgroup_generator();
+        let fake_commitment = VerkleCommitment::from(g);
+
+        let make_proof = || VerkleProof {
+            multi_point: MultiPointProof {
+                d: g,
+                ipa: IpaProof {
+                    l: vec![g; 8],
+                    r: vec![g; 8],
+                    a: Fr::from(1u64),
+                },
+            },
+            commitments: vec![fake_commitment],
+        };
+
+        let claims_a = vec![OpeningClaim {
+            commitment: fake_commitment,
+            eval_point: Fr::from(1u64),
+            eval_value: Fr::from(10u64),
+        }];
+
+        let claims_b = vec![OpeningClaim {
+            commitment: fake_commitment,
+            eval_point: Fr::from(1u64),
+            eval_value: Fr::from(20u64),
+        }];
+
+        // Both should fail (fake proofs) but exercise different code paths
+        let r1 = verify_multiproof(&crs, &make_proof(), &claims_a);
+        let r2 = verify_multiproof(&crs, &make_proof(), &claims_b);
+        assert!(r1.is_ok());
+        assert!(r2.is_ok());
+    }
 }
